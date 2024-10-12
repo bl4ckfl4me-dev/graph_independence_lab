@@ -1,10 +1,10 @@
-import sys
-import random
-import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QWidget, QLabel, QInputDialog, QGridLayout
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 import networkx as nx
+import random
+import sys
+import math
 
 
 class GraphApp(QMainWindow):
