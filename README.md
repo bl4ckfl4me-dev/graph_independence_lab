@@ -21,6 +21,14 @@ Python версии 3.12.7 (в частности был использован 
 # установка библиотек и зависимостей проекта
 pip install -r requirements.txt
 
+# перейдите в директорию с исходным кодом src
+cd src
+
+# запустите сборку параллельного алгоритма поиска числа независимости графа
+# после сборки появится папка build и собранный файл independence_graph.pyd
+python setup.py clean
+python setup.py build_ext --inplace
+
 # запуск проекта
 python main.py
 ```
