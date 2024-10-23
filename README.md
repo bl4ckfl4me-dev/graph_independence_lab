@@ -34,4 +34,14 @@ python main.py
 ```
 
 ## Предварительный просмотр
-![Project preview](./img/project_preview.png)
+![Project preview](./img/test1.png)
+![Project preview](./img/test2.png)
+![Project preview](./img/test3.png)
+![Project preview](./img/test4.png)
+![Project preview](./img/test5.png)
+![Project preview](./img/test6.png)
+![Project preview](./img/test7.png)
+![Project preview](./img/test8.png)
+![Project preview](./img/test9.png)
+![Project preview](./img/test10.png)
+
