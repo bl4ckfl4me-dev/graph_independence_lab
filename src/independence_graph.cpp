@@ -1,7 +1,5 @@
-// Параллельный алгоритм нахождения числа независимости графа
-
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>  // This header allows automatic conversion for STL containers like std::vector
+#include <pybind11/stl.h>
 #include <iostream>
 #include <vector>
 #include <omp.h>
@@ -9,7 +7,7 @@
 namespace py = pybind11;
 
 // Function to check if adding vertex v to set is safe or not
-bool isSafe(int v, std::vector<int>& set, std::vector<std::vector<int>>& adj) {
+bool isSafe(int v, const std::vector<int>& set, const std::vector<std::vector<int>>& adj) {
     for (int i = 0; i < set.size(); i++) {
         if (adj[v][set[i]]) {
             return false;
@@ -18,43 +16,48 @@ bool isSafe(int v, std::vector<int>& set, std::vector<std::vector<int>>& adj) {
     return true;
 }
 
-// Recursive function to find the size of the largest independent set
-int findLargestSet(int index, int n, std::vector<int>& set, std::vector<std::vector<int>>& adj) {
+void findLargestSet(int index, int n, std::vector<int>& set, std::vector<int>& bestSet, const std::vector<std::vector<int>>& adj) {
     if (index == n) {
-        return set.size();
+        if (set.size() > bestSet.size()) {
+            bestSet = set;  // Update the best set found
+        }
+        return;
     }
 
-    int res = findLargestSet(index + 1, n, set, adj);
+    findLargestSet(index + 1, n, set, bestSet, adj);
 
     if (isSafe(index, set, adj)) {
         set.push_back(index);
-        res = std::max(res, findLargestSet(index + 1, n, set, adj));
+        findLargestSet(index + 1, n, set, bestSet, adj);
         set.pop_back();
     }
-
-    return res;
 }
 
-int getIndependenceGraphNumber(std::vector<std::vector<int>> adj) {
-    int result = 0;
+std::vector<int> getIndependenceGraphVertices(const std::vector<std::vector<int>>& adj) {
+    std::vector<int> bestSet;
+
     #pragma omp parallel
     {
-        int localResult = 0;
+        std::vector<int> localBestSet;
+        std::vector<int> localSet;
 
         #pragma omp for
         for (int i = 0; i < adj.size(); i++) {
-            std::vector<int> set;
-            localResult = std::max(localResult, findLargestSet(i, adj.size(), set, adj));
-        }
+            localSet.clear();
+            findLargestSet(i, adj.size(), localSet, localBestSet, adj);
 
-        #pragma omp critical
-        {
-            result = std::max(result, localResult);
+            #pragma omp critical
+            {
+                if (localBestSet.size() > bestSet.size()) {
+                    bestSet = localBestSet;
+                }
+            }
         }
     }
-    return result;
+
+    return bestSet;
 }
 
 PYBIND11_MODULE(independence_graph, m) {
-    m.def("get_independence_graph_number", &getIndependenceGraphNumber, "Get independence graph number", py::arg("adj"));
+    m.def("get_independence_graph_vertices", &getIndependenceGraphVertices, "Get vertices in the largest independent set", py::arg("adj"));
 }

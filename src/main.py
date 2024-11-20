@@ -1,5 +1,7 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QWidget, QLabel, QInputDialog, \
-    QGridLayout
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QPushButton, QSizePolicy, QWidget,
+    QLabel, QInputDialog, QGridLayout, QMessageBox
+)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import independence_graph
@@ -16,6 +18,7 @@ class GraphApp(QMainWindow):
 
         self.nodes = []  # List to store nodes
         self.edges = []  # List to store edges
+        self.independent_node_names = []
         self.node_positions = {}
         self.canvas_size = 400
         self.min_distance = 50
@@ -28,28 +31,30 @@ class GraphApp(QMainWindow):
         main_layout = QGridLayout()
 
         self.label = QLabel('Создайте граф и найдите число независимости')
+        self.label.setStyleSheet('font-size: 16px;')
         self.label.setMaximumHeight(50)
         main_layout.addWidget(self.label, 0, 0, 1, 2)
 
         # Creating buttons
-        self.add_node_button = self.create_button('Добавить вершину')
+        self.add_node_button = self.create_button('Добавить вершину', '#4CAF50', '#388E3C ')
         self.add_node_button.clicked.connect(self.add_node)
         main_layout.addWidget(self.add_node_button, 1, 0)
 
-        self.add_edge_button = self.create_button('Добавить ребро')
+        self.add_edge_button = self.create_button('Добавить ребро', '#2196F3', '#1976D2')
         self.add_edge_button.clicked.connect(self.add_edge)
         main_layout.addWidget(self.add_edge_button, 2, 0)
 
-        self.remove_node_button = self.create_button('Удалить вершину')
+        self.remove_node_button = self.create_button('Удалить вершину', '#F44336', '#D32F2F')
         self.remove_node_button.clicked.connect(self.remove_node)
         main_layout.addWidget(self.remove_node_button, 3, 0)
 
-        self.independence_button = self.create_button('Найти число независимости')
-        self.independence_button.clicked.connect(self.find_independence_number)
-        self.independence_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        main_layout.addWidget(self.independence_button, 1, 1, 2, 1)
+        self.user_info_btn = self.create_button('Информация для пользователя', '#FF9800', '#FB8C00')
+        self.user_info_btn.clicked.connect(self.show_user_info_window)
+        self.user_info_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        main_layout.addWidget(self.user_info_btn, 1, 1, 2, 1)
 
         self.result_label = QLabel('Число независимости:')
+        self.result_label.setStyleSheet('font-size: 16px;')
         main_layout.addWidget(self.result_label, 3, 1)
 
         # Canvas for the graph
@@ -64,20 +69,20 @@ class GraphApp(QMainWindow):
         self.cid_release = self.canvas.mpl_connect('button_release_event', self.on_release)
         self.cid_motion = self.canvas.mpl_connect('motion_notify_event', self.on_motion)
 
-    def create_button(self, text):
+    def create_button(self, text, background_color=None, background_color_hover=None):
         button = QPushButton(text)
-        button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50; /* Зеленый фон */
+        button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {background_color if background_color else '#4CAF50'}; /* Зеленый фон */
                 color: white; /* Белый текст */
                 padding: 10px; /* Отступы */
                 border: none; /* Без рамки */
                 border-radius: 5px; /* Закругленные углы */
                 font-size: 16px; /* Размер шрифта */
-            }
-            QPushButton:hover {
-                background-color: #45a049; /* Более темный зеленый при наведении */
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {background_color_hover if background_color_hover else '#45a049'}; /* Более темный зеленый при наведении */
+            }}
         """)
         return button
 
@@ -100,6 +105,22 @@ class GraphApp(QMainWindow):
             self.node_positions[self.dragging_node] = (new_x, new_y)
             self.draw_graph()
 
+    def show_user_info_window(self):
+        QMessageBox.information(
+            self, 'Описание программы',
+            'Основной задачей данной программы была реализация '
+            'UI-интерфейса для взаимодействия с алгоритмом нахождения числа независимости графа. '
+            'В качестве реализации поставленной задачи был выбран язык программирования '
+            'Python версии 3.12.7 (в частности был использован фреймворк PyQt с сопутствующими ему библиотеками).\n\n'
+            'Реализованный функционал:\n'
+            '- Добавление вершины графа\n'
+            '- Удаление вершины графа\n'
+            '- Добавление грани\n'
+            '- Автоматический подсчет числа независимости графа\n'
+            '- Графическое выделение независимых вершин графа\n'
+            '- Возможность перетаскивания вершин графа по полю'
+        )
+
     def add_node(self):
         node, ok = QInputDialog.getText(self, 'Добавить вершину', 'Введите имя вершины:')
         if ok and node and node not in self.nodes:
@@ -107,6 +128,7 @@ class GraphApp(QMainWindow):
             self.nodes.append(node)
             self.node_positions[node] = (x, y)
             self.draw_graph()
+        self.find_independence_number()
 
     def add_edge(self):
         node1, ok1 = QInputDialog.getText(self, 'Добавить ребро', 'Введите первую вершину:')
@@ -114,6 +136,7 @@ class GraphApp(QMainWindow):
         if ok1 and ok2 and node1 in self.nodes and node2 in self.nodes:
             self.edges.append((node1, node2))
             self.draw_graph()
+        self.find_independence_number()
 
     def remove_node(self):
         node, ok = QInputDialog.getText(self, 'Удалить вершину', 'Введите имя вершины для удаления:')
@@ -122,6 +145,7 @@ class GraphApp(QMainWindow):
             self.edges = [edge for edge in self.edges if node not in edge]  # Remove edges associated with the node
             del self.node_positions[node]
             self.draw_graph()
+        self.find_independence_number()
 
     def find_independence_number(self):
         # Prepare the adjacency matrix for the C++ function
@@ -133,8 +157,10 @@ class GraphApp(QMainWindow):
             adjacency_matrix[idx2][idx1] = 1  # Undirected graph
 
         # Get independence number from C++ function
-        independence_number = independence_graph.get_independence_graph_number(adjacency_matrix)
-        self.result_label.setText(f'Число независимости: {independence_number}')
+        independent_nodes_idx = independence_graph.get_independence_graph_vertices(adjacency_matrix)
+        self.independent_node_names = [name for i, name in enumerate(self.nodes) if i in independent_nodes_idx]
+        self.draw_graph()
+        self.result_label.setText(f'Число независимости: {len(independent_nodes_idx)}')
 
     def generate_random_position(self):
         while True:
@@ -166,7 +192,19 @@ class GraphApp(QMainWindow):
             ax.plot(x_values, y_values, 'k-')
 
         # Draw nodes
-        ax.scatter(*zip(*self.node_positions.values()), s=500, c='lightblue', alpha=1, edgecolors='black', zorder=100)
+        independent_nodes = []
+        regular_nodes = []
+        for name in self.node_positions:
+            if name in self.independent_node_names:
+                independent_nodes.append(self.node_positions[name])
+            else:
+                regular_nodes.append(self.node_positions[name])
+
+        if independent_nodes:
+            ax.scatter(*zip(*independent_nodes), s=500, c='#FF9800', alpha=1, edgecolors='black', zorder=100)
+        if regular_nodes:
+            ax.scatter(*zip(*regular_nodes), s=500, c='#2196F3', alpha=1, edgecolors='black', zorder=100)
+
 
         # Draw node labels on top
         for node, (x, y) in self.node_positions.items():

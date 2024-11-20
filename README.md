@@ -8,11 +8,12 @@ Python версии 3.12.7 (в частности был использован 
 ему библиотеками).
 
 ## Реализованный функционал
-При создании данного UI-приложения первоначально была выполнена задача подсчета 
-числа независимости графа, так же в пользовательском интерфейса предоставлена 
-возможность добавления вершины, добавления ребра и удаления вершины. Для 
-визуального удобства пользователя также есть возможность перетаскивать добавленные вершины
-в любое доступное место на поле (удерживая курсор мыши на вершине).
+- Добавление вершины графа
+- Удаление вершины графа
+- Добавление грани
+- Автоматический подсчет числа независимости графа
+- Графическое выделение независимых вершин графа
+- Возможность перетаскивания вершин графа по полю
 
 ## Запуск проекта
 Предварительно установите на ПК python версии >= 3.10.x, после чего откройте терминал 
@@ -34,14 +35,14 @@ python main.py
 ```
 
 ## Предварительный просмотр
-![Project preview](./img/test1.png)
-![Project preview](./img/test2.png)
-![Project preview](./img/test3.png)
-![Project preview](./img/test4.png)
-![Project preview](./img/test5.png)
-![Project preview](./img/test6.png)
-![Project preview](./img/test7.png)
-![Project preview](./img/test8.png)
-![Project preview](./img/test9.png)
-![Project preview](./img/test10.png)
+![Project preview](./img/test_1.png)
+![Project preview](./img/test_2.png)
+![Project preview](./img/test_3.png)
+![Project preview](./img/test_4.png)
+![Project preview](./img/test_5.png)
+![Project preview](./img/test_6.png)
+![Project preview](./img/test_7.png)
+![Project preview](./img/test_8.png)
+![Project preview](./img/test_9.png)
+![Project preview](./img/test_10.png)
 
